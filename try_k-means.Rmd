@@ -1,28 +1,31 @@
 ---
 title: "Try your data"
-output: html_document
+output: html_notebook
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
-                      fig.show = "animate",
-                      fig.width = 9, fig.height = 7)
+                      fig.width = 8,
+                      fig.show = 'animation',
+                      results = 'hide')
 
 library(tidyverse)
 library(gganimate)
+library(animation)
+ani.options(ani.width = 780)
 source("helper_functions.R")
 ```
 
 ## 1. Prepare your data
 
-### a) Initialize dataset as tibble of two variables
+#### a) Initialize dataset as tibble of two variables
 ```{r}
 set.seed(1234)
 x <- rnorm(12, mean = rep(1:3, each = 4), sd = 0.8)
 y <- rnorm(12, mean = rep(c(1, 2, 1), each = 4), sd = 0.8)
 df_xy <- tibble(x, y)
 ```
-### b) Set initial coordinates of cluster`s centers and their identificators
+#### b) Set initial coordinates of cluster`s centers and their identificators
 ```{r}
 Cx = c(1.6, 1.6, 2.5)
 Cy = c(1, 2, 1.5)
@@ -30,29 +33,36 @@ Cy = c(1, 2, 1.5)
 n_clust <- length(Cx)
 df_cl <- tibble(Cluster = factor(seq(n_clust), ordered = T), Cx, Cy)
 ```
-### c) Make dataset that connect our points with initial cluster's
+#### c) Make dataset that connect our points with initial cluster's
 ```{r}
 df_kmeans0 <- bind_cols(df_xy, map_dfr(df_cl, rep, each = length(x) / n_clust))
 ```
-### d) Now, take a look at the initial configuration of the clusters
+#### d) Now, take a look at the initial configuration of the clusters
 ```{r}
 ggplot(df_kmeans0, aes(x, y)) +
-  geom_point(shape = 1, size = 5) +
-  geom_text(aes(x, y, label = rownames(df_xy)), vjust = 1.8, size = 4, color = "black") + 
-  geom_point(aes(Cx, Cy, color = Cluster), shape = 3, size = 5) +
+  geom_point(shape = 1, size = 5, stroke = 1) +
+  geom_text(aes(x, y, label = rownames(df_xy)), vjust = 2.0, size = 4, color = "black") + 
+  geom_point(aes(Cx, Cy, color = Cluster), shape = 3, size = 5, stroke = 1) +
   labs(title = "The initial location of the cluster centers") +
-  theme_classic() +
+  #theme_classic() +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 ## 2. Run k-means algorithm
 
-### a) Get dataset with k-means iterations
+#### a) Get dataset with k-means iterations 
 ```{r}
 n_iter <- 5 # nubmer of k-means iterations
 df_kmeans <- wraper_kmeans(df_xy, df_cl, n_iter)
-df_kmeans[[n_iter]]
 ```
-### b) Compare result with build-in kmeans() 
+#### b) View clusters from last iteration
+```{r}
+df_kmeans[[n_iter]] %>% 
+  select(Cluster, Cx, Cy) %>% 
+      group_by(Cluster) %>% 
+      unique(.) %>% 
+      arrange(Cluster)
+```
+#### b) Compare result with build-in kmeans() 
 ```{r}
 mxy <- as.matrix(df_xy)
 mcl <- matrix(Cx, Cy, nrow = n_clust, ncol = dim(df_xy)[2])
@@ -62,42 +72,49 @@ test_kmeans
 
 ## 3. Visualize results
 
-### a) Make "long" dataframe from the df_kmeans list
+#### a) Make "long" dataframe from the df_kmeans list
 ```{r}
 df_long <- map_dfr(df_kmeans, ~ .)
 ```
-### b) Animate points accesory to clusters (by changing color) and centers of clusters
-```{r}
-ggplot(df_long, aes(x, y, color = Cluster, frame = Iteration)) +
-  geom_point(aes(group = Cluster), size = 5) +
-  geom_point(aes(x = Cx, y = Cy), shape = 3, size = 7, color = "black") +
-  geom_path(aes(x = Cx, y = Cy, cumulative = TRUE, group = Cluster),
-            color = "black", size = 1) +
-  geom_text(aes(x, y, label = rowid), vjust = 1.8, size = 4, color = 'black') +
-  theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5)) -> gg
-gganimate(gg)
-```
-### c) Visualize clusters with poligons
+#### b) Prepate dataset to make polygons
 ```{r}
 df_kmeans %>% 
   map(~ group_by(.x, Cluster) %>%
         by(.$Cluster, FUN = function(.) {.[chull(.$x, .$y), ]}) %>% 
         map_dfr( ~ .) %>% ungroup()) %>% 
   map_dfr( ~ .) -> df_polygon
-
-gg_poly <- gg +
-  geom_polygon(data = df_polygon,
-               aes(x, y, group = Cluster, fill = Cluster, alpha = .5))
-gganimate(gg_poly)
 ```
+#### c) Visualize clusters as poligons, animate points accesory to clusters (by changing color) and centers of clusters
+```{r message=FALSE, warning=FALSE}
+theme_ani <- theme(
+          plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+          legend.title = element_text(face = "bold", colour = "black", size = 12),
+          legend.text = element_text(size = 11, color = "black"),
+          axis.text = element_text(size = 11, colour = "black"),
+          axis.title = element_text(size = 12, face = "bold"))
 
-### d) Visualize of changing Euler distance for each iteration
+ggplot(df_long, aes(x, y, color = Cluster, frame = Iteration)) +
+  geom_point(aes(group = Cluster), size = 5) +
+  geom_point(aes(x = Cx, y = Cy), shape = 3, size = 5, color = "black", stroke = 1) +
+  geom_path(aes(x = Cx, y = Cy, cumulative = TRUE, group = Cluster),
+            color = "black") +
+  geom_text(aes(x, y, label = rowid), vjust = 1.8, size = 4, color = 'black') +
+  geom_polygon(data = df_polygon,
+               aes(x, y, group = Cluster, fill = Cluster), alpha = .5) +
+  labs(title = "How k-means work:") +
+  theme_ani -> gg
+
+gganimate(gg)
+```
+#### d) Visualize of Euclidean distance for each points in each iteration
 ```{r}
 ggplot(df_long, aes(x = rowid, y = Eu_dist, frame = Iteration, cumulative = TRUE)) +
   geom_point(aes(color = Iteration), size = 5) +
   geom_line(aes(color = Iteration), size = 1) +
-  theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5)) -> gg_dist
+  scale_x_continuous(breaks = 1:dim(df_xy)[1]) +
+  labs(x = "Points", y = "Euclidean distance",
+       title = "Euclidean distance for each points on:") +
+  theme_ani -> gg_dist
+
 gganimate(gg_dist)
 ```
