@@ -67,3 +67,36 @@ wraper_kmeans <- function(df_xy, df_clust, iter) {
   
   return(wrap.env$df_list)
 }
+
+# Make suitable structure to get results of k_means algorithm
+get_kmeans = function(which_i, df_kmeans) {
+  
+  ls_kmeans <- list()
+  
+  df_kmeans[[which_i]] %>%
+    select(Cluster, Cx, Cy) %>%
+    group_by(Cluster) %>% 
+    unique(.) %>% 
+    arrange(Cluster) %>% 
+    ungroup() -> ls_kmeans$`Cluster means`
+  
+  df_kmeans[[which_i]] %>% 
+    count(Cluster) -> ls_kmeans$`Clustering vector`
+  
+  df_kmeans[[which_i]] %>%
+    group_by(Cluster) %>% 
+    summarise(sum(Eu_dist)) %>% 
+    ungroup() -> ls_kmeans$`Euclidean distance wihtin clusters` 
+  
+  return(ls_kmeans)  
+}
+
+# Make dataset for geom_polygon() function
+df_polygon <- function(df_kmeans) {
+  
+  df_kmeans %>% 
+    map(~ group_by(.x, Cluster) %>%
+          by(.$Cluster, FUN = function(.) {.[chull(.$x, .$y), ]}) %>% 
+          map_dfr( ~ .) %>% ungroup()) %>% 
+    map_dfr( ~ .)
+}
