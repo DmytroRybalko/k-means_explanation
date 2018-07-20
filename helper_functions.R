@@ -8,7 +8,7 @@ k_means <- function(n, env) {
     # Calculate the Euclidean distances for the initial cluster group by the formula: sqrt((xi-xc)^2 + (yi-yc)^2)
     step1 <- bind_cols(map_dfr(env$df_xy, rep, env$n_clust),
                        map_dfr(env$df_clust, rep, each = env$len_xy)) %>% 
-      mutate(Eu_dist = sqrt((.$x - .$Cx)^2 + (.$y - .$Cy)^2))
+      mutate(Eu_dist = (.$x - .$Cx)^2 + (.$y - .$Cy)^2)
     
     # Determine which points to which clusters belong
     step1 %>% 
@@ -80,13 +80,12 @@ get_kmeans = function(which_i, df_kmeans) {
     arrange(Cluster) %>% 
     ungroup() -> ls_kmeans$`Cluster means`
   
-  df_kmeans[[which_i]] %>% 
-    count(Cluster) -> ls_kmeans$`Clustering vector`
+  df_kmeans[[which_i]]$Cluster -> ls_kmeans$`Clustering vector`
   
   df_kmeans[[which_i]] %>%
     group_by(Cluster) %>% 
     summarise(sum(Eu_dist)) %>% 
-    ungroup() -> ls_kmeans$`Euclidean distance wihtin clusters` 
+    ungroup() -> ls_kmeans$`Within cluster sum of squares by cluster` 
   
   return(ls_kmeans)  
 }
