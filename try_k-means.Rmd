@@ -105,3 +105,36 @@ ggplot(df_long, aes(x = rowid, y = Eu_dist, frame = Iteration, cumulative = TRUE
 
 gganimate(gg_dist)
 ```
+#### **Comment#1**  
+
+[//]: # (На самкінець хочу зазначити деякі речі. Це - демонстраційний приклад,
+тому алгоритм k-means, реалізований тут, може бути далеким від ефективності.
+Саме тому я не рекомендую використувовати його з великими датасетами і великою
+кількістю ітерацій (> 10). Звичайно, ви можете використати свій власний датасет,
+якщо вам це цікаво)
+
+By the end I want to mention some things.   
+This is a demonstration example, so the k-means algorithm implemented here may be far from effective. Because of this, I do not recommend using it with large datasets and a large number of iterations (> 10). Of course, you can use your own dataset if you are interested.   
+
+#### **Comment#2**   
+
+So, what have I achieved by reinventing the wheel:   
+1.  Understood the [k-means](https://en.wikipedia.org/wiki/K-means_clustering) algorithm, of course)   
+2.  Improved my skills in [tydiverse](https://www.tidyverse.org/)   
+3.  Learned to write recursive functions that return two values, one of which is necessary for recursion work, and the other - for external needs. This was achieved by the additional wrapper function and the concept of environments.  
+4.  Learned to make animated charts with [gganimate](https://github.com/thomasp85/gganimate).  
+5.  Examined [chull](https://www.rdocumentation.org/packages/grDevices/versions/3.5.1/topics/chull) function from base R   
+6.  Learned how to [hide comments](https://stackoverflow.com/questions/4823468/comments-in-markdown) in [Rmarkdown](https://rmarkdown.rstudio.com/index.html)  
+    
+I'd be appriciate for your critical remarks and comments. Well, of course I will be very-very-very happy if this material helps you understand k-means as it helped me!
+   
+   
+[//]: # (Отже, чому я навчився, заново "винайшовши велосипед":   
+1.Розібрався з алгоритмом k-means
+2.Непогано прокачав свої скіли в tydiverse  
+3.Навчився писати рекурсивні функції, що повертають два значення, одне з яких необхідне для роботи рекурсії, а інше - для зовнішніх потреб. Цього я досяг за допомогою додаткової функції-обгортки та поняття environments.  
+4.Навчився робити анімаційні графіки за допомогою gganimate
+5.Познайомився з функцією chull
+6.Як приховувати коменти в Rmarkdown
+Буду радий почути критичні зауваження, коментарі. Ну і буду дуже-дуже-дуже радий, якщо цей матеріал допоможе вам у розумінні k-means, як він допоміг мені)
+  
