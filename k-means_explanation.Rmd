@@ -1,13 +1,12 @@
 ---
 title: "k-means explanation"
-output: html_notebook
+output: html_document
 ---
+### ... or about the benefits of reinventing the wheel   
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
-                      fig.width = 8,
-                      fig.show = 'animation')
-                      #results = 'hide')
+                      fig.width = 8)
 
 library(tidyverse)
 library(gganimate)
@@ -15,9 +14,9 @@ library(animation)
 
 source("helper_functions.R")
 
-# Set size of animation window
 ani.options(ani.width = 780)
 ```
+
 ### **Intro**
 
 It all began with the fact that I've decided to study k-means clustering algorithm. The more resources I read, the more confused . The  definition of cluster centers has been stumbling-block. The most accessible explanation was provided by [Wikipedia](https://en.wikipedia.org/wiki/K-means_clustering):
@@ -54,7 +53,7 @@ Next create a dataset with coordinates of observations and coordinates of cluste
 ```{r}
 df_kmeans0 <- bind_cols(df_xy, map_dfr(df_cl, rep, each = length(x) / n_clust))
 ```
-Here's how all this looks like at the initial stage
+Here's how all this looks like at the initial stage  
 ```{r}
 ggplot(df_kmeans0, aes(x, y)) +
   geom_point(shape = 1, size = 5, stroke = 1) +
@@ -63,6 +62,7 @@ ggplot(df_kmeans0, aes(x, y)) +
   labs(title = "The initial location of the cluster centers") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
+
 Now let's look what's happen under the hood of k-means
 
 #### **Step 1. Calculate squared Euclidean distance between each observations and each clusters**
@@ -94,19 +94,20 @@ step2
 Columns 1-3 represent all (3 in our case)  distances of observation to each cluster. We need to choose the minimum value for each observation. They are gathered in Eu_dist column. So, the columns Eu_dist and Cluster demonstrate which observations to which clusters belong. It was the second and the last stumbling-block. 
 
 #### **Step 3. Join cluster's coordinates to previous dataset**
-Now it remains to add the coordinates of cluster centers to our previous data set
+Now it remains to add the coordinates of cluster centers to our previous data set  
 ```{r}
 step2 %>%
   left_join(df_cl, by = 'Cluster') -> step3
 step3
 ```
-Let's demonstrate result
+Let's demonstrate result  
 ```{r}
 ggplot(step3, aes(x, y, color = Cluster)) +
   geom_point(size = 5) +
   geom_point(aes(x = step3$Cx, y = step3$Cy), shape = 3, size = 7) +
   geom_text(label = rownames(step3), vjust = 1.8, size = 4, color = 'black') 
 ```
+
 #### **Step 4. Recalculation center's coordinates of new clusters**
 ```{r}
 step3 %>% 
@@ -116,7 +117,7 @@ step3 %>%
          Cy2 = mean(y)) -> step4
 step4
 ```
-Let's look at new clusters (smaller size - are initial values)
+Let's look at new clusters (smaller size - are initial values)  
 ```{r}
 step4 %>% 
   ggplot(aes(x, y, color = Cluster)) +
@@ -125,7 +126,8 @@ step4 %>%
     geom_point(aes(x = step4$Cx2, y = step4$Cy2), shape = 3, size = 6) +
     geom_text(aes(label = rownames(step4)), vjust = 1.8, size = 4, color = 'black') 
 ```
-Put our dataset with new clusters into "canonical" form
+
+Put our dataset with new clusters into "canonical" form  
 ```{r warning=FALSE}
 step4 %>% 
   select(Cluster, Cx2, Cy2) %>% 
@@ -161,7 +163,7 @@ Yes of course! But first make "long" dataframe from the df_kmeans list:
 df_long <- map_dfr(df_kmeans, ~ .)
 ```
 Ta da!
-```{r message=FALSE, warning=FALSE}
+```{r warning=FALSE, fig.show = 'animate'}
 theme_ani <- theme(
           plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
           legend.title = element_text(face = "bold", colour = "black", size = 12),
@@ -179,10 +181,9 @@ ggplot(df_long, aes(x, y, color = Cluster, frame = Iteration)) +
                aes(x, y, group = Cluster, fill = Cluster), alpha = .5) +
   labs(title = "How k-means work:") +
   theme_ani -> gg
-
 gganimate(gg)
 ```
-```{r}
+```{r fig.show = 'animate'}
 ggplot(df_long, aes(x = rowid, y = Eu_dist, frame = Iteration, cumulative = TRUE)) +
   geom_point(aes(color = Iteration), size = 5) +
   geom_line(aes(color = Iteration), size = 1) +
@@ -193,7 +194,7 @@ ggplot(df_long, aes(x = rowid, y = Eu_dist, frame = Iteration, cumulative = TRUE
 
 gganimate(gg_dist)
 ```
-```{r}
+```{r fig.show = 'animate'}
 df_long %>% 
   group_by(Iteration) %>% 
   summarise(tot_sum = sum(Eu_dist)) %>% 
@@ -207,12 +208,6 @@ gganimate(gg_tot_sum)
 ```
 
 #### **Comment#1**  
-
-[//]: # (На самкінець хочу зазначити деякі речі. Це - демонстраційний приклад,
-тому алгоритм k-means, реалізований тут, може бути далеким від ефективності.
-Саме тому я не рекомендую використувовати його з великими датасетами і великою
-кількістю ітерацій (> 10). Звичайно, ви можете використати свій власний датасет,
-якщо вам це цікаво)
 
 By the end I want to mention some things.   
 This is a demonstration example, so the k-means algorithm implemented here may be far from effective. Because of this, I do not recommend using it with large datasets and a large number of iterations (> 10). Of course, you can use your own dataset if you are interested.   
@@ -228,12 +223,3 @@ So, what have I achieved by reinventing the wheel:
 6.  Learned how to [hide comments](https://stackoverflow.com/questions/4823468/comments-in-markdown) in [Rmarkdown](https://rmarkdown.rstudio.com/index.html)  
     
 I'd be appriciate for your critical remarks and comments. Well, of course I will be very-very-very happy if this material helps you understand k-means as it helped me! You can find code [here](https://github.com/DmytroRybalko/k-means_explanation)
-   
-[//]: # (Отже, чому я навчився, заново "винайшовши велосипед":   
-1.Розібрався з алгоритмом k-means
-2.Непогано прокачав свої скіли в tydiverse  
-3.Навчився писати рекурсивні функції, що повертають два значення, одне з яких необхідне для роботи рекурсії, а інше - для зовнішніх потреб. Цього я досяг за допомогою додаткової функції-обгортки та поняття environments.  
-4.Навчився робити анімаційні графіки за допомогою gganimate
-5.Познайомився з функцією chull
-6.Як приховувати коменти в Rmarkdown
-Буду радий почути критичні зауваження, коментарі. Ну і буду дуже-дуже-дуже радий, якщо цей матеріал допоможе вам у розумінні k-means, як він допоміг мені)
