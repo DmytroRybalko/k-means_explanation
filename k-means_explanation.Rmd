@@ -37,7 +37,7 @@ I've decided to reproduce dataset that is provided by Roger D.Peng (Figure 12.1:
 set.seed(1234)
 x <- c(0.75, 1.1, 1.25, 0.55, 2.15, 2.17, 1.85, 1.86, 2.87, 2.75, 2.91, 2.71)
 y <- c(0.6, 1.0, 1.25, 1.0, 1.9, 1.8, 1.85, 2.5, 1.0, 0.85, 0.86, 1.18)
-df_xy <- tibble(x, y)
+df_xy <- tibble(x, y) %>% rowid_to_column()
 # Length of dataset
 n_xy <- dim(df_xy)[1]
 ```
@@ -51,7 +51,7 @@ df_cl <- tibble(Cluster = factor(seq(n_clust), ordered = T), Cx, Cy)
 ```
 Next create a dataset with coordinates of observations and coordinates of cluster centers
 ```{r}
-df_kmeans0 <- bind_cols(df_xy, map_dfr(df_cl, rep, each = length(x) / n_clust))
+df_kmeans0 <- bind_cols(df_xy, map_dfr(df_cl, rep, length.out = length(x)))
 ```
 Here's how all this looks like at the initial stage  
 ```{r}
@@ -59,6 +59,7 @@ ggplot(df_kmeans0, aes(x, y)) +
   geom_point(shape = 1, size = 5, stroke = 1) +
   geom_text(aes(x, y, label = rownames(df_xy)), vjust = 2.0, size = 4, color = "black") + 
   geom_point(aes(Cx, Cy, color = Cluster), shape = 3, size = 5, stroke = 1) +
+  coord_equal() +
   labs(title = "The initial location of the cluster centers") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
@@ -84,11 +85,10 @@ df_dist
 step2 <- df_dist %>% 
   select(-Cx, -Cy) %>% 
   spread(Cluster, Eu_dist) %>% 
-  nest(-x, -y) %>%
+  nest(-rowid, -x, -y) %>%
   mutate(Eu_dist = map_dbl(.$data, min),
          Cluster = map_dbl(.$data, which.min) %>% factor(., ordered = T)) %>%
-  unnest(data) %>% 
-  arrange(match(x, df_xy$x))
+  unnest(data)
 step2
 ```
 Columns 1-3 represent all (3 in our case)  distances of observation to each cluster. We need to choose the minimum value for each observation. They are gathered in Eu_dist column. So, the columns Eu_dist and Cluster demonstrate which observations to which clusters belong. It was the second and the last stumbling-block. 
@@ -105,7 +105,8 @@ Let's demonstrate result
 ggplot(step3, aes(x, y, color = Cluster)) +
   geom_point(size = 5) +
   geom_point(aes(x = step3$Cx, y = step3$Cy), shape = 3, size = 7) +
-  geom_text(label = rownames(step3), vjust = 1.8, size = 4, color = 'black') 
+  geom_text(label = rownames(step3), vjust = 1.8, size = 4, color = 'black') +
+  coord_fixed()
 ```
 
 #### **Step 4. Recalculation center's coordinates of new clusters**
@@ -151,11 +152,11 @@ df_kmeans[[n_iter]]
 Also we can view main results of k_means algorithm for chosen iteration
 ```{r warning=FALSE, paged.print=FALSE}
 my_kmeans <- get_kmeans(n_iter, df_kmeans)
-glimpse(my_kmeans)
+my_kmeans
 ```
  ... and compare it this result of build-in k-means() function
 ```{r echo=FALSE}
-kmeans(df_xy, centers = 3, iter.max = n_iter)
+kmeans(df_xy[, -1], centers = 3, iter.max = n_iter)
 ```
 And how about visualization? And it is desirable with animation!   
 Yes of course! But first make "long" dataframe from the df_kmeans list:
@@ -179,6 +180,7 @@ ggplot(df_long, aes(x, y, color = Cluster, frame = Iteration)) +
   geom_text(aes(x, y, label = rowid), vjust = 1.8, size = 4, color = 'black') +
   geom_polygon(data = df_polygon(df_kmeans),
                aes(x, y, group = Cluster, fill = Cluster), alpha = .5) +
+  coord_equal() +
   labs(title = "How k-means work:") +
   theme_ani -> gg
 gganimate(gg)

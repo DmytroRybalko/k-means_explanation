@@ -26,7 +26,7 @@ ani.options(ani.width = 780)
 set.seed(1234)
 x <- rnorm(12, mean = rep(1:3, each = 4), sd = 1)
 y <- rnorm(12, mean = rep(c(1, 2, 1), each = 4), sd = 1)
-df_xy <- tibble(x, y)
+df_xy <- tibble(x, y) %>% rowid_to_column()
 ```
 #### b) Set initial coordinates of cluster`s centers and their identificators
 ```{r}
@@ -38,7 +38,7 @@ df_cl <- tibble(Cluster = factor(seq(n_clust), ordered = T), Cx, Cy)
 ```
 #### c) Make dataset that connect our points with initial cluster's
 ```{r}
-df_kmeans0 <- bind_cols(df_xy, map_dfr(df_cl, rep, each = length(x) / n_clust))
+df_kmeans0 <- bind_cols(df_xy, map_dfr(df_cl, rep, length.out = length(x)))
 ```
 #### d) Now, take a look at the initial configuration of the clusters
 ```{r}
@@ -46,6 +46,7 @@ ggplot(df_kmeans0, aes(x, y)) +
   geom_point(shape = 1, size = 5, stroke = 1) +
   geom_text(aes(x, y, label = rownames(df_xy)), vjust = 2.0, size = 4, color = "black") + 
   geom_point(aes(Cx, Cy, color = Cluster), shape = 3, size = 5, stroke = 1) +
+  coord_equal() +
   labs(title = "The initial location of the cluster centers") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
@@ -63,7 +64,7 @@ my_kmeans
 ```
 #### c) Get result from build-in k-means() function
 ```{r}
-kmeans(df_xy, centers = 5, iter.max = n_iter)
+kmeans(df_xy[, -1], centers = 5, iter.max = n_iter)
 ```
 ## 3. Visualize results
 
@@ -88,6 +89,7 @@ ggplot(df_long, aes(x, y, color = Cluster, frame = Iteration)) +
   geom_text(aes(x, y, label = rowid), vjust = 1.8, size = 4, color = 'black') +
   geom_polygon(data = df_polygon(df_kmeans),
                aes(x, y, group = Cluster, fill = Cluster), alpha = .5) +
+  coord_equal() +
   labs(title = "How k-means work:") +
   theme_ani -> gg
 
@@ -98,7 +100,7 @@ ggplot(df_long, aes(x = rowid, y = Eu_dist, frame = Iteration, cumulative = TRUE
   geom_point(aes(color = Iteration), size = 5) +
   geom_line(aes(color = Iteration), size = 1) +
   scale_x_continuous(breaks = 1:dim(df_xy)[1]) +
-  labs(x = "Points", y = "Euclidean distance",
+  labs(x = "Observations", y = "Euclidean distance",
        title = "Euclidean distance for each points on:") +
   theme_ani -> gg_dist
 

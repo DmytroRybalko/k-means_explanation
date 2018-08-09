@@ -14,11 +14,10 @@ k_means <- function(n, env) {
     step1 %>% 
       select(-Cx, -Cy) %>% 
       spread(Cluster, Eu_dist) %>% 
-      nest(-x, -y) %>%
+      nest(-rowid, -x, -y) %>%
       mutate(Eu_dist = map_dbl(.$data, min),
              Cluster = map_dbl(.$data, which.min) %>% factor(., ordered = T)) %>%
-      unnest(data) %>% 
-      arrange(match(x, env$df_xy$x)) -> step2
+      unnest(data) -> step2
     
     # Get the affiliation of points to cluster's centers
     step2 %>% 
@@ -29,8 +28,7 @@ k_means <- function(n, env) {
     i <- length(env$df_list) + 1 - n
     names(env$df_list)[i] <- paste0("Iteration", i)
     env$df_list[[i]] <- step3 %>% 
-      mutate(Iteration = names(env$df_list)[i]) %>% 
-      rowid_to_column()
+      mutate(Iteration = names(env$df_list)[i])
     
     # Recalculate the coordinates of new cluster's center for each cluster
     step3 %>% 
