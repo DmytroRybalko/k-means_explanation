@@ -3,11 +3,7 @@ use.cache: FALSE
 print.banner.on.startup: auto
 vcs.ignore.lib: TRUE
 vcs.ignore.src: TRUE
-external.packages:
-    tidyverse
-    knitr
-    rmarkdown
-    devtools
+external.packages: 
 local.repos: ~/DataVizPath/MyPackages
 load.external.packages.on.startup: TRUE
 ignored.packages: 
