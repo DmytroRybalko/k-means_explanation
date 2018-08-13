@@ -3,7 +3,8 @@ library(shiny)
 library(tidyverse)
 library(gganimate)
 library(animation)
-source("../helper_functions.R")
+
+source("helper_functions.R")
 
 #################
 ### Get data:

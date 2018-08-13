@@ -246,18 +246,17 @@ Requires: magrittr, rlang, tibble
 
 Package: gganimate
 Source: github
-Version: 0.9.9.9999
-Hash: 012aae50b6d7d0162a34381838a79731
-Requires: ggplot2, gifski, glue, patchwork, plyr, png, progress, rlang,
-    scales, sf, stringi, transformr, tweenr
+Version: 0.1.1
+Hash: 708d4ed04521c053af96c8b4ae2c993b
+Requires: animation, base64enc, ggplot2, htmltools, plyr, withr
 GithubRepo: gganimate
-GithubUsername: thomasp85
-GithubRef: master
-GithubSha1: a26687ac1e9397982ac64f749474a327cd6ca51e
+GithubUsername: dgrtwo
+GithubRef: v0.1.1
+GithubSha1: 279d9bed74c802e2d3c4d909c945726931c3d849
 RemoteHost: https://api.github.com
 RemoteRepo: gganimate
-RemoteUsername: thomasp85
-RemoteSha: a26687ac1e9397982ac64f749474a327cd6ca51e
+RemoteUsername: dgrtwo
+RemoteSha: 279d9bed74c802e2d3c4d909c945726931c3d849
 
 Package: ggplot2
 Source: CRAN
