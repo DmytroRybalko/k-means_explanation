@@ -3,6 +3,7 @@ library(shiny)
 library(tidyverse)
 library(gganimate)
 library(animation)
+library(magick)
 
 source("helper_functions.R")
 
@@ -257,8 +258,9 @@ server <- function(input, output, session) {
       
       # Make animation responsive then resize window
       width <- session$clientData$output_kmeans_chart_width
-      ani.options(ani.width = width, ani.height = ani_height)
+      ani.options(ani.width = width, ani.height = ani_height) 
       
+      #saveGIF(gganimate(gg), movie.name = "outfile.gif")
       gganimate(gg, "outfile.gif")
      
       # Return a list containing the filename
@@ -266,29 +268,32 @@ server <- function(input, output, session) {
           contentType = 'image/gif',
           width = width,
           height = ani_height,
-          deleteFile = TRUE)
-     })
+          alt = "This is alternate text",
+          deleteFile = FALSE)
+      })
+
    
-   ## b) Total within-cluster sum of square
+   # b) Total within-cluster sum of square
    output$tot_sum_chart <- renderImage({
-       
-       df_long <- map_dfr(df_kmeans(), ~ .) 
-       df_long %>% 
-         group_by(Iteration) %>% 
-         summarise(tot_sum = sum(Eu_dist)) %>% 
-         ungroup() %>% 
+
+       df_long <- map_dfr(df_kmeans(), ~ .)
+       df_long %>%
+         group_by(Iteration) %>%
+         summarise(tot_sum = sum(Eu_dist)) %>%
+         ungroup() %>%
          ggplot(aes(x = Iteration, y = tot_sum, frame = Iteration, cumulative = TRUE)) +
             geom_bar(stat = 'identity', aes(fill = Iteration)) +
             labs(x = NULL, title = "Total within-cluster sum of square on:") +
             theme_ani -> gg_tot_sum
-       
-       outfile <- tempfile(fileext='.gif')
+
+       outfile2 <- tempfile(fileext='.gif')
        width <- session$clientData$output_tot_sum_chart_width
        gganimate(gg_tot_sum,"outfile2.gif")
        list(src = "outfile2.gif",
             contentType = 'image/gif',
             width = width,
             height = ani_height,
+            alt = "This is alternate text",
             deleteFile = TRUE)
    })
  } #server

@@ -74,9 +74,18 @@ Hash: 0a8e8a220bcb3625780a294c6cd90aa8
 Requires: sp
 
 Package: animation
-Source: CRAN
-Version: 2.5
-Hash: 2db95e150a4835a0c203686c934b0369
+Source: github
+Version: 2.5.1
+Hash: 5e09ac28df5596a1e42877bad1641780
+Requires: magick
+GithubRepo: animation
+GithubUsername: yihui
+GithubRef: master
+GithubSha1: 70c8d9411f36835e4249582a9d61f65a7322b05f
+RemoteHost: https://api.github.com
+RemoteRepo: animation
+RemoteUsername: yihui
+RemoteSha: 70c8d9411f36835e4249582a9d61f65a7322b05f
 
 Package: assertthat
 Source: CRAN
@@ -357,6 +366,12 @@ Source: CRAN
 Version: 1.7.4
 Hash: 4a1a31b2e8377b4ba20e117d4a1b8b72
 Requires: Rcpp, stringr
+
+Package: magick
+Source: CRAN
+Version: 1.9
+Hash: 74dcfef63a0b0aa94fa61d22ca922de1
+Requires: Rcpp, curl, knitr, magrittr
 
 Package: magrittr
 Source: CRAN
